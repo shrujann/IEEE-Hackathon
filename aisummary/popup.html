@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Helper Menu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div class="logo">✨</div>
+        <div>
+          <div class="title">Helper Menu</div>
+          <div class="subtitle">Transcript • ChatGPT Summary • Voiceover</div>
+        </div>
+      </header>
+
+      <section class="card">
+        <div class="row">
+          <label class="label">Text source</label>
+          <select id="mode" class="select">
+            <option value="selection">Selected text (if any)</option>
+            <option value="page">Full page text</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label class="label">Summary style</label>
+          <select id="summaryStyle" class="select">
+            <option value="bullets">Bullets</option>
+            <option value="short">Short paragraph</option>
+            <option value="study">Study notes (key terms + points)</option>
+          </select>
+        </div>
+
+        <div class="grid">
+          <button id="btnTranscript" class="btn btnA">🧾 Transcript</button>
+          <button id="btnSummary" class="btn btnB">🧠 Summarize</button>
+          <button id="btnSpeak" class="btn btnC">🔊 Voiceover</button>
+          <button id="btnStop" class="btn btnGhost">⏹ Stop</button>
+          <button id="btnCopy" class="btn btnGhost span2">📋 Copy Output</button>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label class="label">Voice</label>
+            <select id="voice" class="select"></select>
+          </div>
+          <div>
+            <label class="label">Speed <span id="rateVal" class="pill">1.0</span></label>
+            <input id="rate" type="range" min="0.5" max="2" step="0.1" value="1" />
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="row between">
+          <div class="row two">
+  <div>
+    <label class="label">Font</label>
+    <select id="fontFamily" class="select">
+      <option value="system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif">System</option>
+      <option value="Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif">Inter</option>
+      <option value="Georgia, 'Times New Roman', serif">Serif</option>
+      <option value="'Courier New', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">Monospace</option>
+    </select>
+  </div>
+
+  <div>
+    <label class="label">Font size <span id="fontSizeVal" class="pill">14</span></label>
+    <input id="fontSize" type="range" min="12" max="22" step="1" value="14" />
+  </div>
+</div>
+
+<div class="row two">
+  <div>
+    <label class="label">Line spacing <span id="lineHeightVal" class="pill">1.4</span></label>
+    <input id="lineHeight" type="range" min="1.1" max="2.2" step="0.1" value="1.4" />
+  </div>
+
+  <div>
+    <label class="label">Preview</label>
+    <div id="preview" class="preview">Aa Bb Cc</div>
+  </div>
+</div>
+
+          <div class="label">Output</div>
+          <div id="status" class="status">Ready</div>
+        </div>
+        <textarea id="output" class="textarea" placeholder="Your transcript/summary will appear here..."></textarea>
+      </section>
+
+      <footer class="footer">
+        <span class="hint">Tip: highlight text on a page, then click “Transcript” or “Summarize”.</span>
+      </footer>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
+

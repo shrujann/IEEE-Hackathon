@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Study Helper Menu",
+  "version": "2.1.0",
+  "description": "Quick help tools: transcript, summary, voiceover.",
+  "permissions": ["activeTab", "scripting", "storage", "tts"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_title": "Helper Menu",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
+
