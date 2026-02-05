@@ -12,7 +12,6 @@ const lineHeightEl = document.getElementById("lineHeight");
 const lineHeightValEl = document.getElementById("lineHeightVal");
 const previewEl = document.getElementById("preview");
 
-
 function setStatus(msg) {
   statusEl.textContent = msg;
 }
@@ -57,7 +56,21 @@ async function requestText(mode) {
   return resp.text || "";
 }
 
-/* ---------- SIMPLE LOCAL SUMMARIZER ---------- */
+/* ---------- APPLY TYPOGRAPHY TO WEBPAGE (NEW) ---------- */
+
+async function applyPageTypographyToTab(settings) {
+  const tabId = await getActiveTabId();
+  if (!tabId) return;
+
+  await ensureContentScript(tabId);
+
+  await chrome.tabs.sendMessage(tabId, {
+    type: "APPLY_PAGE_TYPO",
+    settings
+  });
+}
+
+/* ---------- SIMPLE LOCAL SUMMARIZER (FALLBACK) ---------- */
 
 function splitSentences(text) {
   return text
@@ -69,13 +82,13 @@ function splitSentences(text) {
 
 function scoreSentence(sentence) {
   const lengthScore = Math.min(sentence.length / 120, 1);
-  const keywordBonus = /(important|key|because|therefore|however|result|impact|effect)/i.test(sentence) ? 0.3 : 0;
+  const keywordBonus =
+    /(important|key|because|therefore|however|result|impact|effect)/i.test(sentence) ? 0.3 : 0;
   return lengthScore + keywordBonus;
 }
 
-function summarize(text, style) {
+function summarizeLocal(text, style) {
   const sentences = splitSentences(text);
-
   if (sentences.length === 0) return "No meaningful text found.";
 
   const ranked = sentences
@@ -84,36 +97,53 @@ function summarize(text, style) {
     .slice(0, style === "study" ? 6 : 5)
     .map(o => o.s);
 
-  if (style === "bullets") {
-    return ranked.map(s => "• " + s).join("\n");
-  }
-
-  if (style === "study") {
-    return ranked.map((s, i) => `${i + 1}. ${s}`).join("\n");
-  }
-
-  // short paragraph
+  if (style === "bullets") return ranked.map(s => "• " + s).join("\n");
+  if (style === "study") return ranked.map((s, i) => `${i + 1}. ${s}`).join("\n");
   return ranked.join(" ");
 }
+
+/* ---------- AI SUMMARY (NEW) ---------- */
+
+async function summarizeWithAI(text, style) {
+  const res = await fetch("http://localhost:3000/summarize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, style })
+  });
+
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(msg || "AI summary failed");
+  }
+
+  const data = await res.json();
+  return data.summary || "No summary returned.";
+}
+
+/* ---------- TYPOGRAPHY (OUTPUT + PREVIEW + WEBPAGE) ---------- */
+
 function applyTypographySettings(settings) {
   const fontFamily = settings.fontFamily || fontFamilyEl.value;
   const fontSize = Number(settings.fontSize || fontSizeEl.value);
   const lineHeight = Number(settings.lineHeight || lineHeightEl.value);
 
+  // Popup output
   output.style.fontFamily = fontFamily;
   output.style.fontSize = `${fontSize}px`;
   output.style.lineHeight = String(lineHeight);
 
+  // Preview
   previewEl.style.fontFamily = fontFamily;
   previewEl.style.fontSize = `${Math.max(14, fontSize)}px`;
   previewEl.style.lineHeight = String(lineHeight);
 
+  // UI values
   fontFamilyEl.value = fontFamily;
   fontSizeEl.value = String(fontSize);
   lineHeightEl.value = String(lineHeight);
 
   fontSizeValEl.textContent = String(fontSize);
-  lineHeightValEl.textContent = lineHeight.toFixed(1);
+  lineHeightValEl.textContent = Number(lineHeight).toFixed(1);
 }
 
 function saveTypographySettings() {
@@ -122,7 +152,11 @@ function saveTypographySettings() {
     fontSize: Number(fontSizeEl.value),
     lineHeight: Number(lineHeightEl.value)
   };
+
   chrome.storage.local.set({ typography: settings });
+
+  // NEW: apply to website too
+  applyPageTypographyToTab(settings).catch(() => {});
 }
 
 function hookTypographyUI() {
@@ -148,9 +182,15 @@ function loadTypographySettings() {
   chrome.storage.local.get(["typography"], (res) => {
     const settings = res.typography || {};
     applyTypographySettings(settings);
+
+    // NEW: also apply saved settings to webpage immediately
+    applyPageTypographyToTab({
+      fontFamily: settings.fontFamily || fontFamilyEl.value,
+      fontSize: Number(settings.fontSize || fontSizeEl.value),
+      lineHeight: Number(settings.lineHeight || lineHeightEl.value)
+    }).catch(() => {});
   });
 }
-
 
 /* ---------- BUTTON ACTIONS ---------- */
 
@@ -168,7 +208,7 @@ document.getElementById("btnTranscript").addEventListener("click", async () => {
 
 document.getElementById("btnSummary").addEventListener("click", async () => {
   try {
-    setStatus("Summarizing…");
+    setStatus("Summarizing (AI)…");
     const text = await requestText(modeEl.value);
 
     if (!text.trim()) {
@@ -177,9 +217,16 @@ document.getElementById("btnSummary").addEventListener("click", async () => {
       return;
     }
 
-    const summary = summarize(text, styleEl.value);
-    setOutput(summary);
-    setStatus("Summary ready");
+    // AI first, fallback to local
+    try {
+      const aiSummary = await summarizeWithAI(text, styleEl.value);
+      setOutput(aiSummary);
+      setStatus("AI summary ready");
+    } catch (aiErr) {
+      const local = summarizeLocal(text, styleEl.value);
+      setOutput(local + "\n\n[AI failed — showing local summary instead]");
+      setStatus("Local summary ready");
+    }
   } catch (err) {
     setOutput(String(err.message || err));
     setStatus("Error");
@@ -240,6 +287,4 @@ function loadVoices() {
 loadVoices();
 hookTypographyUI();
 loadTypographySettings();
-
-lenValEl.textContent = String(sumLenEl.value);
 setStatus("Ready");
