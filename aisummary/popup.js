@@ -5,6 +5,7 @@ const rateEl = document.getElementById("rate");
 const rateVal = document.getElementById("rateVal");
 const statusEl = document.getElementById("status");
 const styleEl = document.getElementById("summaryStyle");
+
 const fontFamilyEl = document.getElementById("fontFamily");
 const fontSizeEl = document.getElementById("fontSize");
 const fontSizeValEl = document.getElementById("fontSizeVal");
@@ -23,55 +24,40 @@ rateEl.addEventListener("input", () => {
   rateVal.textContent = Number(rateEl.value).toFixed(1);
 });
 
-/* ---------- TEXT EXTRACTION ---------- */
-
+/* ---------- TAB HELPERS ---------- */
 async function getActiveTabId() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   return tab?.id;
 }
 
-async function ensureContentScript(tabId) {
-  try {
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      files: ["content.js"]
-    });
-  } catch {
-    throw new Error("This page doesn’t allow extensions to read content.");
-  }
-}
-
+/* ---------- TEXT EXTRACTION (content.js already injected via manifest) ---------- */
 async function requestText(mode) {
   const tabId = await getActiveTabId();
   if (!tabId) throw new Error("No active tab found.");
 
-  await ensureContentScript(tabId);
-
-  const resp = await chrome.tabs.sendMessage(tabId, {
-    type: "GET_TEXT",
-    mode
-  });
-
-  if (!resp?.ok) throw new Error("Could not extract text.");
-  return resp.text || "";
+  try {
+    const resp = await chrome.tabs.sendMessage(tabId, { type: "GET_TEXT", mode });
+    if (!resp?.ok) throw new Error("Could not extract text.");
+    return resp.text || "";
+  } catch (e) {
+    // Most common cause: restricted pages (chrome://, web store) or page not refreshed after reload
+    throw new Error("Could not reach page content. Refresh the page and try again (not on chrome:// pages).");
+  }
 }
 
-/* ---------- APPLY TYPOGRAPHY TO WEBPAGE (NEW) ---------- */
-
+/* ---------- APPLY TYPOGRAPHY TO WEBPAGE ---------- */
 async function applyPageTypographyToTab(settings) {
   const tabId = await getActiveTabId();
   if (!tabId) return;
 
-  await ensureContentScript(tabId);
-
-  await chrome.tabs.sendMessage(tabId, {
-    type: "APPLY_PAGE_TYPO",
-    settings
-  });
+  try {
+    await chrome.tabs.sendMessage(tabId, { type: "APPLY_PAGE_TYPO", settings });
+  } catch {
+    // ignore on restricted pages
+  }
 }
 
-/* ---------- SIMPLE LOCAL SUMMARIZER (FALLBACK) ---------- */
-
+/* ---------- LOCAL SUMMARIZER (fallback) ---------- */
 function splitSentences(text) {
   return text
     .replace(/\s+/g, " ")
@@ -102,8 +88,7 @@ function summarizeLocal(text, style) {
   return ranked.join(" ");
 }
 
-/* ---------- AI SUMMARY (NEW) ---------- */
-
+/* ---------- AI SUMMARY (backend on localhost) ---------- */
 async function summarizeWithAI(text, style) {
   const res = await fetch("http://localhost:3000/summarize", {
     method: "POST",
@@ -120,19 +105,18 @@ async function summarizeWithAI(text, style) {
   return data.summary || "No summary returned.";
 }
 
-/* ---------- TYPOGRAPHY (OUTPUT + PREVIEW + WEBPAGE) ---------- */
-
+/* ---------- TYPOGRAPHY (popup + preview + webpage) ---------- */
 function applyTypographySettings(settings) {
   const fontFamily = settings.fontFamily || fontFamilyEl.value;
   const fontSize = Number(settings.fontSize || fontSizeEl.value);
   const lineHeight = Number(settings.lineHeight || lineHeightEl.value);
 
-  // Popup output
+  // popup output
   output.style.fontFamily = fontFamily;
   output.style.fontSize = `${fontSize}px`;
   output.style.lineHeight = String(lineHeight);
 
-  // Preview
+  // preview box
   previewEl.style.fontFamily = fontFamily;
   previewEl.style.fontSize = `${Math.max(14, fontSize)}px`;
   previewEl.style.lineHeight = String(lineHeight);
@@ -141,7 +125,6 @@ function applyTypographySettings(settings) {
   fontFamilyEl.value = fontFamily;
   fontSizeEl.value = String(fontSize);
   lineHeightEl.value = String(lineHeight);
-
   fontSizeValEl.textContent = String(fontSize);
   lineHeightValEl.textContent = Number(lineHeight).toFixed(1);
 }
@@ -155,8 +138,8 @@ function saveTypographySettings() {
 
   chrome.storage.local.set({ typography: settings });
 
-  // NEW: apply to website too
-  applyPageTypographyToTab(settings).catch(() => {});
+  // Apply to the website itself
+  applyPageTypographyToTab(settings);
 }
 
 function hookTypographyUI() {
@@ -183,17 +166,16 @@ function loadTypographySettings() {
     const settings = res.typography || {};
     applyTypographySettings(settings);
 
-    // NEW: also apply saved settings to webpage immediately
+    // also apply saved settings to the webpage
     applyPageTypographyToTab({
       fontFamily: settings.fontFamily || fontFamilyEl.value,
       fontSize: Number(settings.fontSize || fontSizeEl.value),
       lineHeight: Number(settings.lineHeight || lineHeightEl.value)
-    }).catch(() => {});
+    });
   });
 }
 
 /* ---------- BUTTON ACTIONS ---------- */
-
 document.getElementById("btnTranscript").addEventListener("click", async () => {
   try {
     setStatus("Getting text…");
@@ -217,14 +199,13 @@ document.getElementById("btnSummary").addEventListener("click", async () => {
       return;
     }
 
-    // AI first, fallback to local
     try {
-      const aiSummary = await summarizeWithAI(text, styleEl.value);
-      setOutput(aiSummary);
+      const ai = await summarizeWithAI(text, styleEl.value);
+      setOutput(ai);
       setStatus("AI summary ready");
     } catch (aiErr) {
       const local = summarizeLocal(text, styleEl.value);
-      setOutput(local + "\n\n[AI failed — showing local summary instead]");
+      setOutput(local + "\n\n[AI failed: " + String(aiErr.message || aiErr) + "]");
       setStatus("Local summary ready");
     }
   } catch (err) {
@@ -266,16 +247,16 @@ document.getElementById("btnCopy").addEventListener("click", async () => {
 });
 
 /* ---------- VOICES ---------- */
-
 function loadVoices() {
-  chrome.tts.getVoices(voices => {
+  chrome.tts.getVoices((voices) => {
     voiceEl.innerHTML = "";
+
     const def = document.createElement("option");
     def.value = "";
     def.textContent = "Default";
     voiceEl.appendChild(def);
 
-    voices.forEach(v => {
+    voices.forEach((v) => {
       const opt = document.createElement("option");
       opt.value = v.voiceName;
       opt.textContent = `${v.voiceName}${v.lang ? ` (${v.lang})` : ""}`;
@@ -284,6 +265,7 @@ function loadVoices() {
   });
 }
 
+/* ---------- INIT ---------- */
 loadVoices();
 hookTypographyUI();
 loadTypographySettings();

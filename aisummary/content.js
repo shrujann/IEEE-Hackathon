@@ -1,3 +1,4 @@
+
 function getSelectedText() {
   const sel = window.getSelection();
   return sel ? sel.toString().trim() : "";
@@ -9,13 +10,12 @@ function getPageText() {
     document.querySelector("article") ||
     document.body;
 
-  let text = main.innerText || "";
+  let text = main?.innerText || "";
   text = text.replace(/\s+/g, " ").trim();
   return text;
 }
 
 /* ---------- PAGE TYPOGRAPHY (NEW) ---------- */
-
 const STYLE_ID = "study-helper-page-typography";
 
 function applyPageTypography(settings) {
@@ -30,7 +30,6 @@ function applyPageTypography(settings) {
     document.documentElement.appendChild(styleEl);
   }
 
-  // Applies to most text elements; avoids breaking monospace blocks too badly
   styleEl.textContent = `
     html { font-size: ${fontSize}px !important; }
 
@@ -55,18 +54,11 @@ function resetPageTypography() {
   if (styleEl) styleEl.remove();
 }
 
-/* ---------- MESSAGING ---------- */
-
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === "GET_TEXT") {
     const mode = msg.mode || "selection";
     const selected = getSelectedText();
-
-    const text =
-      mode === "selection"
-        ? (selected || getPageText())
-        : getPageText();
-
+    const text = mode === "selection" ? (selected || getPageText()) : getPageText();
     sendResponse({ ok: true, text });
     return true;
   }

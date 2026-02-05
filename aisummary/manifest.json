@@ -3,7 +3,7 @@
   "name": "Study Helper Menu",
   "version": "2.2.0",
   "description": "Quick help tools: transcript, AI summary, voiceover + readability.",
-  "permissions": ["activeTab", "scripting", "storage", "tts"],
+  "permissions": ["activeTab", "storage", "tts"],
   "host_permissions": ["<all_urls>", "http://localhost:3000/*"],
   "action": {
     "default_title": "Helper Menu",
@@ -11,5 +11,12 @@
   },
   "background": {
     "service_worker": "background.js"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
 }
