@@ -14,6 +14,15 @@
           <div class="title">TGS Assistant</div>
           <div class="subtitle">Transcript • Summary • Voiceover</div>
         </div>
+        <!-- Theme controls: dropdown (System / Light / Dark) -->
+        <div class="theme-controls" aria-hidden="false">
+          <label for="themeSelect" class="visually-hidden">Theme</label>
+          <select id="themeSelect" class="theme-select">
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
       </header>
 
       <!-- MAIN CONTROLS CARD -->
@@ -36,9 +45,9 @@
         </div>
 
         <div class="grid">
-          <button id="btnTranscript" class="btn btnA">🧾 Transcript</button>
-          <button id="btnSummary" class="btn btnB">🧠 Summarize</button>
-          <button id="btnSpeak" class="btn btnC">🔊 Voiceover</button>
+          <button id="btnTranscript" class="btn btnGhost">🧾 Transcript</button>
+          <button id="btnSummary" class="btn btnGhost">🧠 Summarize</button>
+          <button id="btnSpeak" class="btn btnGhost">🔊 Voiceover</button>
           <button id="btnStop" class="btn btnGhost">⏹ Stop</button>
           <button id="btnCopy" class="btn btnGhost span2">📋 Copy Output</button>
         </div>

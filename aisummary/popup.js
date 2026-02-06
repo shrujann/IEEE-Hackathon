@@ -241,3 +241,63 @@ function loadVoices() {
 loadVoices();
 hookTypographyUI();
 loadTypographySettings();
+
+// ===== THEME (LIGHT / DARK / SYSTEM) =====
+const themeSelect = document.getElementById('themeSelect');
+
+function applyTheme(theme) {
+  const body = document.body;
+  body.classList.remove("light-mode", "dark-mode");
+  if (theme === 'system') {
+    // apply based on system preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      body.classList.add('dark-mode');
+    } else {
+      body.classList.add('light-mode');
+    }
+  } else if (theme === 'dark') {
+    body.classList.add('dark-mode');
+  } else {
+    body.classList.add('light-mode');
+  }
+}
+
+function saveThemePreference(theme) {
+  try { chrome.storage.local.set({ themePreference: theme }); } catch (e) { /* ignore */ }
+}
+
+// Dropdown handler
+if (themeSelect) {
+  themeSelect.addEventListener('change', (e) => {
+    const v = e.target.value || 'system';
+    applyTheme(v);
+    saveThemePreference(v);
+  });
+}
+
+// Load saved theme (default to system)
+try {
+  chrome.storage.local.get(['themePreference'], (result) => {
+    const saved = result.themePreference || 'system';
+    // set select UI if available
+    if (themeSelect) themeSelect.value = saved;
+    applyTheme(saved);
+  });
+} catch (e) {
+  // fallback
+  applyTheme('system');
+}
+
+if (window.matchMedia) {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  mq.addEventListener('change', (e) => {
+    try {
+      chrome.storage.local.get(['themePreference'], (result) => {
+        if ((result.themePreference || 'system') === 'system') {
+          if (themeSelect) themeSelect.value = 'system';
+          applyTheme('system');
+        }
+      });
+    } catch (err) { /* ignore */ }
+  });
+}
