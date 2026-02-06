@@ -9,6 +9,26 @@
   --r: 18px;
 }
 
+.light-mode{
+  --bg1: #ffffff;
+  --bg2: #ffffff;
+  --card: #ffffff;
+  --stroke: rgba(0,0,0,0.08);
+  --text: #0b1020;
+  --muted: rgba(0,0,0,0.45);
+  --shadow: 0 8px 20px rgba(11,16,32,0.06);
+}
+
+.dark-mode{
+  --bg1:#0b1020;
+  --bg2:#141a33;
+  --card: rgba(255,255,255,0.08);
+  --stroke: rgba(255,255,255,0.14);
+  --text: rgba(255,255,255,0.92);
+  --muted: rgba(255,255,255,0.70);
+  --shadow: 0 16px 40px rgba(0,0,0,0.45);
+}
+
 *{ box-sizing:border-box; }
 body{
   margin:0;
@@ -28,6 +48,16 @@ body{
   align-items:center;
   margin-bottom: 12px;
 }
+.theme-controls{ margin-left: auto; display:flex; gap:6px; align-items:center; }
+.theme-select{
+  font-size:13px;
+  padding:6px 8px;
+  border-radius:8px;
+  border:1px solid var(--stroke);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+}
+.visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;border:0;padding:0;margin:-1px}
 .logo{
   width:38px;height:38px;
   display:grid;place-items:center;
@@ -48,18 +78,18 @@ body{
   backdrop-filter: blur(10px);
 }
 
-.row{ margin-bottom: 10px; }
+.row{ 
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+ }
 .row.two{
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   align-items:end;
 }
-.row.between{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
+
 .label{
   display:block;
   font-size: 12px;
@@ -99,9 +129,6 @@ body{
 }
 .btn:active{ transform: translateY(1px); }
 
-.btnA{ background: linear-gradient(135deg, #ff4fd855, #7c5cff55); }
-.btnB{ background: linear-gradient(135deg, #2ee6ff55, #00ffa355); }
-.btnC{ background: linear-gradient(135deg, #ffd24a55, #ff6a0055); }
 .btnGhost{ background: rgba(255,255,255,0.05); }
 
 .textarea{
@@ -127,13 +154,5 @@ body{
   color: var(--muted);
   font-size: 11px;
 }
-.preview{
-  width:100%;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid var(--stroke);
-  background: rgba(10,12,24,0.35);
-  color: var(--text);
-  text-align: center;
-}
+
 
