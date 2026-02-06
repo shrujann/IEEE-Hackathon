@@ -8,15 +8,15 @@
   </head>
   <body>
     <div class="app">
+      <!-- HEADER -->
       <header class="header">
-  <div>
-    <div class="title">TGS Assistant</div>
-    <div class="subtitle">Transcript • Summary • Voiceover</div>
-  </div>
-</header>
+        <div>
+          <div class="title">TGS Assistant</div>
+          <div class="subtitle">Transcript • Summary • Voiceover</div>
+        </div>
+      </header>
 
-
-
+      <!-- MAIN CONTROLS CARD -->
       <section class="card">
         <div class="row">
           <label class="label">Text source</label>
@@ -55,49 +55,38 @@
         </div>
       </section>
 
+      <!-- TYPOGRAPHY CARD -->
       <section class="card">
-        <div class="row between">
-          <div class="row two">
-  <div>
-    <label class="label">Font</label>
-    <select id="fontFamily" class="select">
-      <option value="system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif">System</option>
-      <option value="Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif">Inter</option>
-      <option value="Georgia, 'Times New Roman', serif">Serif</option>
-      <option value="'Courier New', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">Monospace</option>
-    </select>
-  </div>
-
-  <div>
-    <label class="label">Font size <span id="fontSizeVal" class="pill">14</span></label>
-    <input id="fontSize" type="range" min="12" max="22" step="1" value="14" />
-  </div>
-</div>
-
-<div class="row two">
-  <div>
-    <label class="label">Line spacing <span id="lineHeightVal" class="pill">1.4</span></label>
-    <input id="lineHeight" type="range" min="1.1" max="2.2" step="0.1" value="1.4" />
-  </div>
-
-  <div>
-    <label class="label">Preview</label>
-    <div id="preview" class="preview">Aa Bb Cc</div>
-  </div>
-</div>
-
-          <div class="label">Output</div>
-          <div id="status" class="status">Ready</div>
+        <div class="row two">
+          <div>
+            <label class="label">Font</label>
+            <select id="fontFamily" class="select">
+              <option value="system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif">System</option>
+              <option value="Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif">Inter</option>
+              <option value="Georgia, 'Times New Roman', serif">Serif</option>
+              <option value="'Courier New', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">Monospace</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Font size <span id="fontSizeVal" class="pill">14</span></label>
+            <input id="fontSize" type="range" min="12" max="22" step="1" value="14" />
+          </div>
         </div>
+
+        <div class="row">
+          <label class="label">Line spacing <span id="lineHeightVal" class="pill">1.4</span></label>
+          <input id="lineHeight" type="range" min="1.1" max="2.2" step="0.1" value="1.4" />
+        </div>
+
         <textarea id="output" class="textarea" placeholder="Your transcript/summary will appear here..."></textarea>
       </section>
 
+      <!-- FOOTER -->
       <footer class="footer">
-        <span class="hint">Tip: highlight text on a page, then click “Transcript” or “Summarize”.</span>
+        <span class="hint">Tip: highlight text on a page, then click "Transcript" or "Summarize".</span>
       </footer>
     </div>
 
     <script src="popup.js"></script>
   </body>
 </html>
-

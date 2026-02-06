@@ -48,18 +48,18 @@ body{
   backdrop-filter: blur(10px);
 }
 
-.row{ margin-bottom: 10px; }
+.row{ 
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+ }
 .row.two{
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   align-items:end;
 }
-.row.between{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
+
 .label{
   display:block;
   font-size: 12px;
@@ -127,13 +127,5 @@ body{
   color: var(--muted);
   font-size: 11px;
 }
-.preview{
-  width:100%;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid var(--stroke);
-  background: rgba(10,12,24,0.35);
-  color: var(--text);
-  text-align: center;
-}
+
 
