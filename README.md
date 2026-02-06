@@ -1,7 +1,7 @@
 # IEEE-Hackathon
 IEEE Hackathon
 Instructions:
-1. install node.js on chrome
+1. install node.js on any browser
 2. install the files
 3. open terminal and go server
 4. perform npm install and npm start
